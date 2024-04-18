@@ -1,0 +1,71 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Resources:
+  JenkinsEC2Role:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: Jenkins-s3-beanstalk-role
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: "/"
+      Policies:
+        - PolicyName: cf-s3-policies
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: '*'
+                Resource: 'arn:aws:s3:::*'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AdministratorAccess-AWSElasticBeanstalk
+  JenkinsInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      InstanceProfileName: jenk-ins-profile
+      Path: "/"
+      Roles:
+        - !Ref JenkinsEC2Role
+
+  beanStalkEC2Role:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: aws-elasticbeanstalk-ec2-access-role
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: "/"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSElasticBeanstalkMulticontainerDocker
+        - arn:aws:iam::aws:policy/AWSElasticBeanstalkWebTier
+        - arn:aws:iam::aws:policy/AWSElasticBeanstalkWorkerTier
+  BeanstalkInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      InstanceProfileName: elastic-beanstalk-ins-profile
+      Path: "/"
+      Roles:
+        - !Ref beanStalkEC2Role
+Outputs:
+  S3RoleDetails:
+    Description: CICD S3 ROLE
+    Value: !Ref JenkinsInstanceProfile
+    Export:
+      Name: Jenk-InstanceProfileName
+  
+  beanstalkInstanceProfileDetails:
+    Description: Instance profile attached to the elasticbeanstalk environment
+    Value: !Ref BeanstalkInstanceProfile
+    Export:
+      Name: ElasticBeanstalk-InstancProfile-Name

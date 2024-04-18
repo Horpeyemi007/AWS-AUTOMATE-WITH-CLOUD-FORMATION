@@ -1,0 +1,10 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Resources:
+  beanstalkEnvironment:
+    Type: AWS::ElasticBeanstalk::Environment
+    Properties:
+      ApplicationName: !ImportValue ElasticBeanStalkApplicationName
+      CNAMEPrefix: cloud-banking-app
+      Description: Beanstalk environment setup for Demo Banking App
+      EnvironmentName: DemoBankEnv
+      TemplateName: !ImportValue BeanStalkEnvironmentTemplate

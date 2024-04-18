@@ -1,0 +1,41 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Parameters:
+  InstanceType:
+    Type: String
+Mappings: 
+  RegionMap: 
+    us-east-1: 
+      "AMI": "ami-06aa3f7caf3a30282"
+    us-east-2: 
+      "AMI": "ami-0e731c8a588258d0d"
+
+Resources:
+  JenkinsInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: !Ref InstanceType
+      KeyName: !ImportValue BankApp-KeyPair
+      ImageId: !FindInMap [RegionMap, !Ref "AWS::Region", AMI]
+      SubnetId: !ImportValue Pub-Subnet-1-ID
+      SecurityGroupIds:
+        - !ImportValue Jenkins-SecurityGroupID
+      IamInstanceProfile: !ImportValue Jenk-InstanceProfileName
+      UserData:
+        Fn::Base64:
+          !Sub |
+            #!/bin/bash
+            sudo apt update
+            sudo apt install openjdk-17-jdk maven awscli -y
+            sudo apt install wget -y
+
+            # Installing Jenkins
+            
+            sudo wget -O /usr/share/keyrings/jenkins-keyring.asc  https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key
+            echo deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/ | sudo tee /etc/apt/sources.list.d/jenkins.list > /dev/null
+            sudo apt-get update
+            sudo apt-get install jenkins -y
+            sleep 3
+            sudo systemctl start jenkins
+      Tags:
+        - Key: "Name"
+          Value: !Join [" ", ["Jenkins", "in", !Ref AWS::Region]]

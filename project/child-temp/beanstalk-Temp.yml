@@ -1,0 +1,85 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Resources:
+  beanstalkApplication:
+    Type: AWS::ElasticBeanstalk::Application
+    Properties:
+      ApplicationName: DemoBankApp
+      Description: Beanstalk application setup for Demo Banking App
+  beanstalkConfigurationTemplate:
+    Type: AWS::ElasticBeanstalk::ConfigurationTemplate
+    Properties:
+      ApplicationName: !Ref beanstalkApplication
+      Description: AWS Demo Bank Setup Configuration Template
+      OptionSettings:
+      - Namespace: aws:ec2:vpc
+        OptionName: VPCId
+        Value: !ImportValue Vpc-ID
+      - Namespace: aws:ec2:vpc
+        OptionName: Subnets
+        Value: 
+          Fn::Join: [ ",", [ !ImportValue Pub-Subnet-1-ID, !ImportValue Pub-Subnet-2-ID, !ImportValue Pub-Subnet-3-ID ] ]
+      - Namespace: aws:ec2:vpc
+        OptionName: ELBSubnets
+        Value:
+          Fn::Join: [ ",", [ !ImportValue Pub-Subnet-1-ID, !ImportValue Pub-Subnet-2-ID, !ImportValue Pub-Subnet-3-ID ] ]
+      - Namespace: aws:autoscaling:asg
+        OptionName: MinSize
+        Value: "1"
+      - Namespace: aws:autoscaling:asg
+        OptionName: MaxSize
+        Value: "2"
+      - Namespace: aws:ec2:vpc
+        OptionName: AssociatePublicIpAddress
+        Value: true
+      - Namespace: aws:autoscaling:launchconfiguration
+        OptionName: IamInstanceProfile
+        Value: !ImportValue ElasticBeanstalk-InstancProfile-Name
+      - Namespace: aws:autoscaling:launchconfiguration
+        OptionName: InstanceType 
+        Value: t2.micro
+      - Namespace: aws:autoscaling:launchconfiguration
+        OptionName: RootVolumeType
+        Value: "gp2"
+      - Namespace: aws:autoscaling:launchconfiguration
+        OptionName: EC2KeyName
+        Value: !ImportValue BankApp-KeyPair
+      - Namespace: aws:autoscaling:launchconfiguration
+        OptionName: SecurityGroups
+        Value: !ImportValue BeanstalkEnv-SecurityGroupID
+      - Namespace: aws:elbv2:loadbalancer
+        OptionName: SecurityGroups
+        Value: !ImportValue BeanstalkELB-SecurityGroupID
+      - Namespace: aws:autoscaling:asg
+        OptionName: Availability Zones
+        Value: "Any 3"
+      - Namespace: aws:elasticbeanstalk:application:environment
+        OptionName: SERVER_PORT
+        Value: "5000"
+      - Namespace: aws:elasticbeanstalk:environment
+        OptionName: EnvironmentType
+        Value: "LoadBalanced"
+      - Namespace: aws:elasticbeanstalk:environment:process:default
+        OptionName: HealthCheckPath 
+        Value: "/"
+      - Namespace: aws:elasticbeanstalk:healthreporting:system
+        OptionName: SystemType
+        Value: "enhanced"
+      - Namespace: aws:elasticbeanstalk:command
+        OptionName: DeploymentPolicy
+        Value: "AllAtOnce"
+      - Namespace: aws:elasticbeanstalk:environment:process:default
+        OptionName: MatcherHTTPCode
+        Value: "200"
+      SolutionStackName: "64bit Amazon Linux 2 v3.5.1 running Corretto 17"
+
+Outputs:
+  beanStalkTemplateName:
+    Description: "Template Configuration for Beanstalk enviroment setup"
+    Value: !Ref beanstalkConfigurationTemplate
+    Export:
+      Name: BeanStalkEnvironmentTemplate
+  beanstalkApplicationName:
+    Description: "Name of the Elastic beanstalk application"
+    Value: !Ref beanstalkApplication
+    Export:
+      Name: ElasticBeanStalkApplicationName

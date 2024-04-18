@@ -1,0 +1,55 @@
+Parameters:
+  InstanceTypeParameter:
+    Type: String
+    Default: t2.micro
+    AllowedValues:
+      - t2.micro
+      - t2.small
+      - t2.large
+    Description: Enter t2.micro, t2.small, or t2.large. Default is t2.micro.
+  MyDefaultIpAddress:
+    Type: String
+    Default: "105.113.71.24/32"
+    Description: My Ip Address for instance connect
+
+Resources:
+  AppKeyPair:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.amazonaws.com/demo-cicd-stack-bucket/demo-stack-folder/keypair.yml
+  AuthRoleStalk:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: AppKeyPair
+    Properties:
+      TemplateURL: https://s3.amazonaws.com/demo-cicd-stack-bucket/demo-stack-folder/AuthRole.yml
+  VPCStalk:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: AuthRoleStalk
+    Properties:
+      TemplateURL: https://s3.amazonaws.com/demo-cicd-stack-bucket/demo-stack-folder/vpc.yml
+  SecurityGroupStalk:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: VPCStalk
+    Properties:
+      TemplateURL: https://s3.amazonaws.com/demo-cicd-stack-bucket/demo-stack-folder/SG.yml
+      Parameters:
+       MyIPAddress: !Ref MyDefaultIpAddress
+  JenkinsInstance:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: SecurityGroupStalk
+    Properties:
+      TemplateURL: https://s3.amazonaws.com/demo-cicd-stack-bucket/demo-stack-folder/Jenkins.yml
+      Parameters:
+        InstanceType: !Ref InstanceTypeParameter
+  BeanStalkTemplate:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: JenkinsInstance
+    Properties:
+      TemplateURL: https://s3.amazonaws.com/demo-cicd-stack-bucket/demo-stack-folder/beanstalk-Temp.yml
+      Parameters:
+        InstanceType: !Ref InstanceTypeParameter
+  BeanStalkEnvironment:
+    Type: AWS::CloudFormation::Stack
+    DependsOn: BeanStalkTemplate
+    Properties:
+      TemplateURL: https://s3.amazonaws.com/demo-cicd-stack-bucket/demo-stack-folder/beanstalk-Env.yml
