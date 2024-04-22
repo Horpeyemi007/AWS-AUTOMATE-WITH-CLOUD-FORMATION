@@ -1,9 +1,6 @@
 # AWS-AUTOMATE-WITH-CLOUD-FORMATION
 Creation of resources using AWS cloud formation nested and CICD deployment using Jenkins
 
-
-# AWS WITH TERRAFORM
-
 ## Using AWS CLOUD FORMATION NESTED STACK to set up SET UP JENKINS, VPC, BEANSTALK ENVIRONMENT
 
 ## Steps
