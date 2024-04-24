@@ -64,7 +64,7 @@ pipeline{
         sh 'aws s3 cp target/banking-v1.jar s3://${S3_BUCKET}/demoApp-${VERSION_LABEL}.jar'
       }
     }
-    stage('Upload to Beanstalk'){
+    stage('Deploy to Beanstalk'){
       steps{
         withAWS(region:"${AWS_REGION}"){
           sh "aws elasticbeanstalk create-application-version --application-name ${APPLICATION_NAME} --version-label ${VERSION_LABEL} --source-bundle S3Bucket=${S3_BUCKET},S3Key=demoApp-${VERSION_LABEL}.jar"
