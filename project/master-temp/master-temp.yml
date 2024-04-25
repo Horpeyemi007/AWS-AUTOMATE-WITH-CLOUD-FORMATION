@@ -47,7 +47,7 @@ Resources:
     Properties:
       TemplateURL: https://s3.amazonaws.com/demo-cicd-stack-bucket/demo-stack-folder/beanstalk-Temp.yml
       Parameters:
-        InstanceType: !Ref InstanceTypeParameter
+        # InstanceType: !Ref InstanceTypeParameter
   BeanStalkEnvironment:
     Type: AWS::CloudFormation::Stack
     DependsOn: BeanStalkTemplate
